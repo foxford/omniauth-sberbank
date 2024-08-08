@@ -35,7 +35,7 @@ module OmniAuth
              authorize_url: 'https://id.sber.ru/CSAFront/oidc/authorize.do'
 
       option :authorize_options, %i[scope response_type client_type client_id state nonce]
-
+      option :token_options, %i[scope client_id client_secret]
       option :redirect_url, nil
 
       uid { raw_info['sub'].to_s }

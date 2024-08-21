@@ -164,13 +164,18 @@ module OmniAuth
       end
 
       def callback_phase
-        super
+        super.tap do
+          next if env['omniauth.error']
+
+          log :debug, "Complete request initiated, rquid = #{rquid}."
+          client.request(:get, '/api/auth/completed', headers: { rquid: rquid })
+        end
       rescue NoRawData => e
         fail!(:no_raw_data, e)
       end
 
       def access_token_headers
-        OmniAuth.logger.send(:debug, "YOUR RQUID #{rquid}")
+        log :debug, "YOUR RQUID #{rquid}"
         {
           'rquid' => rquid,
           'x-ibm-client-id' => options.client_id,

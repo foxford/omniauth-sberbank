@@ -67,6 +67,10 @@ module OmniAuth
         }
       end
 
+      def request_phase
+        redirect request_phase_client.auth_code.authorize_url({ redirect_uri: callback_url }.merge(authorize_params))
+      end
+
       # https://developer.sberbank.ru/doc/v1/sberbank-id/datareq
       def raw_info
         access_token.options[:mode] = :header
@@ -85,7 +89,7 @@ module OmniAuth
       # https://developer.sberbank.ru/doc/v1/sberbank-id/authcodereq
       def authorize_params
         super.tap do |params|
-          %w[state scope response_type client_type client_id nonce].each do |v|
+          %w[state scope response_type client_type client_id nonce token].each do |v|
             next unless request.params[v]
 
             params[v.to_sym] = request.params[v]
@@ -102,6 +106,13 @@ module OmniAuth
       end
 
       private
+
+      def request_phase_client
+        client_options = deep_symbolize(options.client_options)
+        client_options[:authorize_url] = request.params['sberIDRedirect'] if request.params['sberIDRedirect']
+
+        ::OAuth2::Client.new(options.client_id, options.client_secret, client_options)
+      end
 
       def params
         {
